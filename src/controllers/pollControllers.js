@@ -25,3 +25,9 @@ if(!error && dadosEnquete.expireAt != null){
 } 
 
 }
+
+export function listPolls(req,res){
+    db.collection("enquete").find().toArray().then(enquetes => {
+        res.send(enquetes)
+    });
+}
