@@ -30,3 +30,20 @@ export function listPolls(req,res){
         res.send(enquetes)
     });
 }
+
+export async function listChoices(req, res){
+    const id = req.params.id
+    const verificarId = await db.collection("opcoesdevotos").findOne({
+        poolId: id
+       })
+       if(!verificarId){
+        res.sendStatus(404)
+        return
+       }else{
+        db.collection("opcoesdevotos").find({poolId: id}).toArray().then(votos => {
+            res.send(votos)
+        });
+       }
+      
+  
+}
