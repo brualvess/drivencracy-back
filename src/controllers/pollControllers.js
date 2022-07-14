@@ -11,7 +11,6 @@ const schemaPoll = joi.object({
 })
 const { error } = schemaPoll.validate(dadosEnquete)
 if(error){
-    console.log(error)
     return res.sendStatus(422)
 }
 if(!error && dadosEnquete.expireAt == null){
