@@ -1,5 +1,6 @@
 import { db, ObjectId } from '../dbStrategy/mongo.js'
 import joi from 'joi'
+import dayjs from 'dayjs'
 export async function createChoice(req, res) {
     const dadosVoto = req.body
     const schemaChoice = joi.object({
@@ -32,4 +33,19 @@ export async function createChoice(req, res) {
        }
        await db.collection('opcoesdevotos').insertOne({title : dadosVoto.title, poolId: dadosVoto.poolId})
     res.sendStatus(201)
+}
+
+export async function votes(req, res){
+    const id = req.params.id
+    const date = dayjs().locale('pt-br').format('YYYY-MM-DD HH:mm')
+    const verificarOpcoes= await db.collection("opcoesdevotos").findOne({
+        _id: new ObjectId(id) 
+       })
+   if(!verificarOpcoes){
+    console.log(verificarOpcoes)
+    res.sendStatus(404)
+   }else{
+    await db.collection('votos').insertOne({createdAt: date, choiceId: id})
+    return  res.sendStatus(201)
+   }
 }
