@@ -1,4 +1,4 @@
-import {db} from '../dbStrategy/mongo.js'
+import {db, ObjectId} from '../dbStrategy/mongo.js'
 import joi from 'joi'
 import dayjs from 'dayjs'
 
@@ -31,19 +31,42 @@ export function listPolls(req,res){
     });
 }
 
-export async function listChoices(req, res){
+
+export async function resultPoll(req,res){
     const id = req.params.id
-    const verificarId = await db.collection("opcoesdevotos").findOne({
-        poolId: id
+    const verificarEnquete= await db.collection("enquete").findOne({
+        _id: new ObjectId(id) 
        })
-       if(!verificarId){
+       if(!verificarEnquete){
         res.sendStatus(404)
         return
-       }else{
-        db.collection("opcoesdevotos").find({poolId: id}).toArray().then(votos => {
-            res.send(votos)
-        });
        }
-      
-  
+       const buscarVotos= await db.collection("opcoesdevotos").find({
+        poolId: new ObjectId(id)
+       }).toArray()
+       console.log(ObjectId(buscarVotos[0]._id).str)
+       const votos= await db.collection("votos").find({
+        choiceId:new ObjectId (buscarVotos[0]._id)
+       }).count()
+       console.log(votos)
+       let maior = votos
+       let indice = 0
+       for(let i = 0; i < buscarVotos.length; i++){
+        const quantidadeVotos = await db.collection("votos").find({
+            choiceId:new ObjectId (buscarVotos[i]._id)
+           }).count()
+        if(quantidadeVotos > maior){
+            maior = quantidadeVotos
+            indice = i
+        }
+       }
+       res.send({
+        id : id,
+        title: verificarEnquete.title,
+        expireAt: verificarEnquete.expireAt,
+        result:{
+            title: buscarVotos[indice].title,
+            votes : maior
+        }
+       })
 }

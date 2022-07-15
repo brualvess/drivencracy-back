@@ -31,7 +31,7 @@ export async function createChoice(req, res) {
         res.sendStatus(409)
         return
        }
-       await db.collection('opcoesdevotos').insertOne({title : dadosVoto.title, poolId: dadosVoto.poolId})
+       await db.collection('opcoesdevotos').insertOne({title : dadosVoto.title, poolId: new ObjectId (dadosVoto.poolId)})
     res.sendStatus(201)
 }
 
@@ -42,10 +42,24 @@ export async function votes(req, res){
         _id: new ObjectId(id) 
        })
    if(!verificarOpcoes){
-    console.log(verificarOpcoes)
     res.sendStatus(404)
    }else{
-    await db.collection('votos').insertOne({createdAt: date, choiceId: id})
+    await db.collection('votos').insertOne({createdAt: date, choiceId: new ObjectId (id)})
     return  res.sendStatus(201)
    }
+}
+export async function listChoices(req, res){
+    const id = req.params.id
+    const verificarId = await db.collection("opcoesdevotos").findOne({
+        poolId: new ObjectId (id)
+       })
+       if(!verificarId){
+        res.sendStatus(404)
+        return
+       }else{
+        db.collection("opcoesdevotos").find({poolId:new ObjectId(id)}).toArray().then(votos => {
+            res.send(votos)
+        });
+       }   
+  
 }
