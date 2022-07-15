@@ -2,6 +2,7 @@ import { db, ObjectId } from '../dbStrategy/mongo.js'
 import joi from 'joi'
 import dayjs from 'dayjs'
 export async function createChoice(req, res) {
+    const date = dayjs().locale('pt-br').format('YYYY-MM-DD HH:mm')
     const dadosVoto = req.body
     const schemaChoice = joi.object({
         title: joi.string().required(),
@@ -31,6 +32,10 @@ export async function createChoice(req, res) {
         res.sendStatus(409)
         return
        }
+       if(dayjs(verificarEnquete.expireAt).isBefore(date)){
+        res.sendStatus(403)
+        return
+       }
        await db.collection('opcoesdevotos').insertOne({title : dadosVoto.title, poolId: new ObjectId (dadosVoto.poolId)})
     res.sendStatus(201)
 }
@@ -41,9 +46,14 @@ export async function votes(req, res){
     const verificarOpcoes= await db.collection("opcoesdevotos").findOne({
         _id: new ObjectId(id) 
        })
+const enquetes = await db.collection("enquete").findOne({_id : new ObjectId (verificarOpcoes.poolId)})
    if(!verificarOpcoes){
     res.sendStatus(404)
    }else{
+    if(dayjs(enquetes.expireAt).isBefore(date)){
+        res.sendStatus(403)
+        return
+       }
     await db.collection('votos').insertOne({createdAt: date, choiceId: new ObjectId (id)})
     return  res.sendStatus(201)
    }
